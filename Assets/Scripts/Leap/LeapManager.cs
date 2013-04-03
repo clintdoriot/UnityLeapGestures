@@ -288,8 +288,25 @@ public class LeapManager : MonoBehaviour
 				
 					break;
 				
-				// process circles (continuous events)
+				// process swipes (continuous events)
 				case Gesture.GestureType.TYPESWIPE:
+					switch (g.State)
+					{
+						case Gesture.GestureState.STATESTART:
+							if (SwipeGestureStartedEvent != null)
+								SwipeGestureStartedEvent(new SwipeGesture(g));
+							break;
+					
+						case Gesture.GestureState.STATEUPDATE:
+							if (SwipeGestureUpdatedEvent != null)
+								SwipeGestureUpdatedEvent(new SwipeGesture(g));
+							break;
+					
+						case Gesture.GestureState.STATESTOP:
+							if (SwipeGestureStoppedEvent != null)
+								SwipeGestureStoppedEvent(new SwipeGesture(g));
+							break;
+					}
 					break;
 				
 				

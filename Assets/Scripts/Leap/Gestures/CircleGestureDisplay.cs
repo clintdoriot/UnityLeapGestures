@@ -5,7 +5,6 @@ using Leap;
 public class CircleGestureDisplay : GestureDisplay {
 	
 	private CircleGesture _circleGesture;
-	private CircleGesture _circleGestureStart;
 
 	public CircleGesture circleGesture
 	{
@@ -16,8 +15,6 @@ public class CircleGestureDisplay : GestureDisplay {
 		
 		set
 		{
-			if (_circleGestureStart == null)
-				_circleGestureStart = value;
 			_circleGesture = value;
 			gesture = value;
 		}

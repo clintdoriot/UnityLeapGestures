@@ -20,7 +20,7 @@ public class GestureController : MonoBehaviour {
 	/// storage for continuous events
 	/// </summary> 
 	private Dictionary<int, CircleGestureDisplay> circleGestures = new Dictionary<int, CircleGestureDisplay>();	
-	private Dictionary<int, SwipeGesture> swipeGestures = new Dictionary<int, SwipeGesture>();
+	private Dictionary<int, SwipeGestureDisplay> swipeGestures = new Dictionary<int, SwipeGestureDisplay>();
 	
 	
     /*-------------------------------------------------------------------------
@@ -38,11 +38,9 @@ public class GestureController : MonoBehaviour {
 		LeapManager.CircleGestureStoppedEvent += new LeapManager.CircleGestureStoppedHandler(OnCircleGestureStop);
 		
 		// Swipe Continuous Events
-		/*
-		LeapManager.CircleGestureStartedEvent += new LeapManager.CircleGestureStartedHandler(OnCircleGestureStart);
-		LeapManager.CircleGestureUpdatedEvent += new LeapManager.CircleGestureUpdatedHandler(OnCircleGestureUpdate);
-		LeapManager.CircleGestureStoppedEvent += new LeapManager.CircleGestureStoppedHandler(OnCircleGestureStop);
-		*/
+		LeapManager.SwipeGestureStartedEvent += new LeapManager.SwipeGestureStartedHandler(OnSwipeGestureStart);
+		LeapManager.SwipeGestureUpdatedEvent += new LeapManager.SwipeGestureUpdatedHandler(OnSwipeGestureUpdate);
+		LeapManager.SwipeGestureStoppedEvent += new LeapManager.SwipeGestureStoppedHandler(OnSwipeGestureStop);
 	}
 	
 	
@@ -96,14 +94,27 @@ public class GestureController : MonoBehaviour {
 	
 	// Swipe Lifecycle Events
 	public void OnSwipeGestureStart(SwipeGesture g) {
+		//Debug.LogWarning("Circle Start " + g.Id);
+		GameObject go = (GameObject) GameObject.Instantiate(swipeGesturePrefab);
+		SwipeGestureDisplay swipe = go.GetComponent<SwipeGestureDisplay>();
+		swipe.swipeGesture = g;
+		swipeGestures[g.Id] = swipe;
 		
 	}
 	
 	public void OnSwipeGestureUpdate(SwipeGesture g) {
-		
+		//Debug.Log("Circle Update " + g.Id);
+		SwipeGestureDisplay swipe = swipeGestures[g.Id];
+		if (swipe != null)
+			swipe.swipeGesture = g;	
 	}
 	
 	public void OnSwipeGestureStop(SwipeGesture g) {
+		//Debug.LogError("Circle Stop " + g.Id);
+		SwipeGestureDisplay swipe = swipeGestures[g.Id];
+		if (swipe != null)
+			swipe.swipeGesture = g;
+		swipeGestures.Remove (g.Id);		
 		
 	}
 	
