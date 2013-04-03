@@ -172,7 +172,7 @@ public class LeapSandboxController : MonoBehaviour
         
         foreach( GameObject fingerTip in GameObject.FindGameObjectsWithTag("FingerTip") )
         {
-            Debug.Log ("adding component...");
+            //Debug.Log ("adding component...");
             fingerTip.AddComponent(typeof(LeapFingerCollisionDispatcher));	
         }
     }

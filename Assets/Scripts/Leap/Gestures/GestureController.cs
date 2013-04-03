@@ -1,41 +1,110 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Leap;
 
 public class GestureController : MonoBehaviour {
 	
+    /*-------------------------------------------------------------------------
+     * Class Properties & Variables
+     * ----------------------------------------------------------------------*/
+	/// <summary>
+	/// Gesture prefabs
+	/// </summary>
 	public GameObject keyTapGesturePrefab;
+	public GameObject screenTapGesturePrefab;
+	public GameObject circleGesturePrefab;
+	public GameObject swipeGesturePrefab;
 	
-	// Use this for initialization
+	/// <summary>
+	/// storage for continuous events
+	/// </summary> 
+	private Dictionary<int, CircleGestureDisplay> circleGestures = new Dictionary<int, CircleGestureDisplay>();	
+	private Dictionary<int, SwipeGesture> swipeGestures = new Dictionary<int, SwipeGesture>();
+	
+	
+    /*-------------------------------------------------------------------------
+     * Unity Lifecycle Functions
+     * ----------------------------------------------------------------------*/
+	
 	void Start () {
+		// Key / Screen Tap Discrete Events
 		LeapManager.KeyTapGestureEvent += new LeapManager.KeyTapGestureHandler(OnKeyTapGesture);
-	    //LeapManager.GestureStarted += new LeapManager.GestureStartedHandler(OnGestureStarted);
-        //LeapManager.GestureUpdated += new LeapManager.GestureUpdatedHandler(OnGestureUpdated);
-        //LeapManager.GestureStopped += new LeapManager.GestureStoppedHandler(OnGestureStopped);
+		LeapManager.ScreenTapGestureEvent += new LeapManager.ScreenTapGestureHandler(OnScreenTapGesture);
+		
+		// Circle Continuous Events
+		LeapManager.CircleGestureStartedEvent += new LeapManager.CircleGestureStartedHandler(OnCircleGestureStart);
+		LeapManager.CircleGestureUpdatedEvent += new LeapManager.CircleGestureUpdatedHandler(OnCircleGestureUpdate);
+		LeapManager.CircleGestureStoppedEvent += new LeapManager.CircleGestureStoppedHandler(OnCircleGestureStop);
+		
+		// Swipe Continuous Events
+		/*
+		LeapManager.CircleGestureStartedEvent += new LeapManager.CircleGestureStartedHandler(OnCircleGestureStart);
+		LeapManager.CircleGestureUpdatedEvent += new LeapManager.CircleGestureUpdatedHandler(OnCircleGestureUpdate);
+		LeapManager.CircleGestureStoppedEvent += new LeapManager.CircleGestureStoppedHandler(OnCircleGestureStop);
+		*/
 	}
 	
-
-	public void OnKeyTapGesture(Gesture g) {
+	
+	
+    /*-------------------------------------------------------------------------
+     * Leap Gesture Events
+     * ----------------------------------------------------------------------*/
+	
+	// Key Tap Event
+	public void OnKeyTapGesture(KeyTapGesture g) {
 		GameObject go = (GameObject) GameObject.Instantiate(keyTapGesturePrefab);
 		KeyTapGestureDisplay keyTap = go.GetComponent<KeyTapGestureDisplay>();
 		keyTap.gesture = g;
-		Debug.Log("OnKeyTapGesture " + g.Id);
-	}
-	
-	public void OnScreenTapGesture(Gesture g) {
-	}
-	
-	void OnGestureStarted(Gesture g, long fId) {
-		Debug.LogWarning("" + fId + "->" + g.Frame.Id + " " +g.Type.ToString() + " Gesture Started: " + g.Id + " " + g.State.ToString() );
+		//Debug.Log("OnKeyTapGesture " + g.Id);
 	}
 	
 	
-	void OnGestureUpdated(Gesture g, long fId) {
-		Debug.Log("" + fId + "->" + g.Frame.Id + " " +g.Type.ToString() + " Gesture Updated: " + g.Id + " " + g.State.ToString());
+	// Screen Tap Event
+	public void OnScreenTapGesture(ScreenTapGesture g) {
+		GameObject go = (GameObject) GameObject.Instantiate(screenTapGesturePrefab);
+		ScreenTapGestureDisplay screenTap = go.GetComponent<ScreenTapGestureDisplay>();
+		screenTap.gesture = g;
+		//Debug.Log("OnScreenTapGesture " + g.Id);
 	}
 	
 	
-	void OnGestureStopped(Gesture g, long fId) {
-		Debug.LogError("" + fId + "->" + g.Frame.Id + " " +g.Type.ToString() + " Gesture Stopped: " + g.Id + " " + g.State.ToString());
+	// Circle Lifecycle Events
+	public void OnCircleGestureStart(CircleGesture g) {
+		//Debug.LogWarning("Circle Start " + g.Id);
+		GameObject go = (GameObject) GameObject.Instantiate(circleGesturePrefab);
+		CircleGestureDisplay circle = go.GetComponent<CircleGestureDisplay>();
+		circle.circleGesture = g;
+		circleGestures[g.Id] = circle;
 	}
+	
+	public void OnCircleGestureUpdate(CircleGesture g) {
+		//Debug.Log("Circle Update " + g.Id);
+		CircleGestureDisplay circle = circleGestures[g.Id];
+		if (circle != null)
+			circle.circleGesture = g;		
+	}
+	
+	public void OnCircleGestureStop(CircleGesture g) {
+		//Debug.LogError("Circle Stop " + g.Id);
+		CircleGestureDisplay circle = circleGestures[g.Id];
+		if (circle != null)
+			circle.circleGesture = g;
+		circleGestures.Remove (g.Id);		
+	}
+	
+	
+	// Swipe Lifecycle Events
+	public void OnSwipeGestureStart(SwipeGesture g) {
+		
+	}
+	
+	public void OnSwipeGestureUpdate(SwipeGesture g) {
+		
+	}
+	
+	public void OnSwipeGestureStop(SwipeGesture g) {
+		
+	}
+	
 }

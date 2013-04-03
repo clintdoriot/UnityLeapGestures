@@ -4,6 +4,8 @@ using Leap;
 
 public class KeyTapGestureDisplay : GestureDisplay {
 	
+	//TODO: take into account key tap object in Gesture Controller
+	
 	private KeyTapGesture keyTapGesture;
 	
 	public override void Start()
@@ -17,8 +19,4 @@ public class KeyTapGestureDisplay : GestureDisplay {
 		}
 	}
 	
-	public override void Update() 
-	{
-		base.Update();
-	}
 }

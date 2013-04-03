@@ -32,6 +32,7 @@ public class LeapManager : MonoBehaviour
     /*-------------------------------------------------------------------------
      * Class Properties & Variables
      * ----------------------------------------------------------------------*/
+	
     // Private Variables
     private static Controller _controller = new Leap.Controller();
     private static Frame _frame = null;
@@ -62,16 +63,16 @@ public class LeapManager : MonoBehaviour
     public delegate void HandUpdatedHandler(Hand h);
     public delegate void PointableUpdatedHandler(Pointable p);
 	
-	public delegate void KeyTapGestureHandler(Gesture g);
-	public delegate void ScreenTapGestureHandler(Gesture g);
+	public delegate void KeyTapGestureHandler(KeyTapGesture g);
+	public delegate void ScreenTapGestureHandler(ScreenTapGesture g);
 	
-    public delegate void SwipeGestureStartedHandler(Gesture g);
-    public delegate void SwipeGestureUpdatedHandler(Gesture g);
-    public delegate void SwipeGestureStoppedHandler(Gesture g);
+    public delegate void CircleGestureStartedHandler(CircleGesture g);
+    public delegate void CircleGestureUpdatedHandler(CircleGesture g);
+    public delegate void CircleGestureStoppedHandler(CircleGesture g);
 	
-    public delegate void CircleGestureStartedHandler(Gesture g);
-    public delegate void CircleGestureUpdatedHandler(Gesture g);
-    public delegate void CircleGestureStoppedHandler(Gesture g);
+    public delegate void SwipeGestureStartedHandler(SwipeGesture g);
+    public delegate void SwipeGestureUpdatedHandler(SwipeGesture g);
+    public delegate void SwipeGestureStoppedHandler(SwipeGesture g);
 
     /// <summary>
     /// Events dispatched in the following order:
@@ -79,9 +80,9 @@ public class LeapManager : MonoBehaviour
     ///   HandFound, PointableFound
     ///   HandUpdated, PointableUpdated
     ///   KeyTapGesture, ScreenTapGesture
-    ///   SwipeGestureStarted / CircleGestureStarted
-    ///   SwipeGestureUpdated / CircleGestureUpdated
-    ///   SwipeGestureStopped / CircleGestureStopped
+    ///   CircleGestureStarted / SwipeGestureStarted
+    ///   CircleGestureUpdated / SwipeGestureUpdated
+    ///   CircleGestureStopped / SwipeGestureStopped
     /// </summary>
     public static event ObjectLostHandler HandLost;
     public static event ObjectLostHandler PointableLost;
@@ -93,13 +94,13 @@ public class LeapManager : MonoBehaviour
     public static event KeyTapGestureHandler KeyTapGestureEvent;
     public static event ScreenTapGestureHandler ScreenTapGestureEvent;
 	
-    public static event SwipeGestureStartedHandler SwipeGestureStartedEvent;
-    public static event SwipeGestureUpdatedHandler SwipeGestureUpdatedEvent;
-    public static event SwipeGestureStoppedHandler SwipeGestureStoppedEvent;
-	
     public static event CircleGestureStartedHandler CircleGestureStartedEvent;
     public static event CircleGestureUpdatedHandler CircleGestureUpdatedEvent;
     public static event CircleGestureStoppedHandler CircleGestureStoppedEvent;
+	
+    public static event SwipeGestureStartedHandler SwipeGestureStartedEvent;
+    public static event SwipeGestureUpdatedHandler SwipeGestureUpdatedEvent;
+    public static event SwipeGestureStoppedHandler SwipeGestureStoppedEvent;
 
 	private Leap.Frame firstFrame = null;
 	
@@ -193,17 +194,6 @@ public class LeapManager : MonoBehaviour
             if (!newFrame.Pointable(p.Id).IsValid && PointableLost != null)
                 PointableLost(p.Id);
         }
-		
-		/*
-		// Gestures
-		foreach (Gesture g in newFrame.Gestures(_instance.firstFrame))
-		{
-			if (!g.IsValid)
-				continue;
-			// TODO: double check logic. Other options: compare old and new frames or check list of recently stopped gestures
-			if (g.State == Gesture.GestureState.STATESTOP && GestureStopped != null)
-				GestureStopped(g, newFrame.Id);
-		}*/
     }
 	
 	
@@ -226,18 +216,6 @@ public class LeapManager : MonoBehaviour
             if (!oldFrame.Pointable(p.Id).IsValid && PointableFound != null)
                 PointableFound(p);
         }
-		
-		/*
-		// Gestures
-		foreach (Gesture g in newFrame.Gestures(_instance.firstFrame))
-		{
-			if (!g.IsValid)
-				continue;
-			// TODO: double check logic. Other options: compare old and new frames or check list of recently started gestures
-			if (g.State == Gesture.GestureState.STATESTART && GestureStarted != null) 
-			//if (!oldFrame.Gesture(g.Id).IsValid && GestureStarted != null)
-				GestureStarted(g, newFrame.Id);
-		}*/
     }
 
     private static void DispatchUpdatedEvents(Frame newFrame, Frame oldFrame)
@@ -260,17 +238,6 @@ public class LeapManager : MonoBehaviour
             if (oldFrame.Pointable(p.Id).IsValid && PointableUpdated != null)
                 PointableUpdated(p);
         }
-		
-		/*
-		// Gestures
-		foreach (Gesture g in newFrame.Gestures(_instance.firstFrame))
-		{
-			if (!g.IsValid)
-				continue;
-			// TODO: double check logic. Other options: see if in new frame or check list of recently started / stopped gestures
-			if (g.State == Gesture.GestureState.STATEUPDATE && GestureUpdated != null)
-				GestureUpdated(g, newFrame.Id);
-		}*/
     }
 	
 	
@@ -278,6 +245,8 @@ public class LeapManager : MonoBehaviour
 	{
 		foreach (Gesture g in newFrame.Gestures(oldFrame))
 		{
+			//Debug.Log ("**" + oldFrame.Id + "->" + newFrame.Id + ": " + g.Type.ToString() + " " + g.State.ToString() + " (" + g.Id + ") **");
+			
 			// filter invalid events
 			if (!g.IsValid || (g.Type == Gesture.GestureType.TYPEINVALID))
 				continue;
@@ -285,22 +254,46 @@ public class LeapManager : MonoBehaviour
 			// process valid events based on types
 			switch (g.Type)
 			{
+				// process key taps (discrete events)
 				case Gesture.GestureType.TYPEKEYTAP:
 					if (KeyTapGestureEvent != null)
-						KeyTapGestureEvent(g);
+						KeyTapGestureEvent(new KeyTapGesture(g));
 					break;
 				
+				// process screen taps (discrete events)
 				case Gesture.GestureType.TYPESCREENTAP:
 					if (ScreenTapGestureEvent != null)
-						ScreenTapGestureEvent(g);
+						ScreenTapGestureEvent(new ScreenTapGesture(g));
 					break;
 				
+				// process circles (continuous events)
 				case Gesture.GestureType.TYPECIRCLE:
+					switch (g.State)
+					{
+						case Gesture.GestureState.STATESTART:
+							if (CircleGestureStartedEvent != null)
+								CircleGestureStartedEvent(new CircleGesture(g));
+							break;
+					
+						case Gesture.GestureState.STATEUPDATE:
+							if (CircleGestureUpdatedEvent != null)
+								CircleGestureUpdatedEvent(new CircleGesture(g));
+							break;
+					
+						case Gesture.GestureState.STATESTOP:
+							if (CircleGestureStoppedEvent != null)
+								CircleGestureStoppedEvent(new CircleGesture(g));
+							break;
+					}
+				
 					break;
 				
+				// process circles (continuous events)
 				case Gesture.GestureType.TYPESWIPE:
 					break;
 				
+				
+				// invalid gesture (do nothing)
 				default:
 					break;
 			}
