@@ -115,7 +115,6 @@ public class GestureController : MonoBehaviour {
 		if (swipe != null)
 			swipe.swipeGesture = g;
 		swipeGestures.Remove (g.Id);		
-		
 	}
 	
 }
